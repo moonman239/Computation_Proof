@@ -5,5 +5,6 @@ export async function POST(req: Request)
 {
     const text = await req.text();
     console.log("received " + text);
-    return NextResponse.json({"text":text});
+    const uuid = uuidv4();
+    return NextResponse.json({"text":text,"id":uuid});
 }
