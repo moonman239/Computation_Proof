@@ -5,24 +5,37 @@ import {ResponseJSON } from "./circom/types";
 import { ConfirmCustomerBalancePaymentData } from '@stripe/stripe-js';
 
 export default function Home() {
-  const [files,setFiles] = useState<FileList | null>();
+  const [files,setFiles] = useState<FileList>();
   const onSubmit = (e:FormEvent)=>{
     e.preventDefault();
+    
     if (files)
+    {
+      const formData = new FormData();
+      for (let i=0; i<files.length; i++)
+        formData.append("files_" + i,files[i]);
        fetch("circom",{
           headers: {"Content-Type":"application/json"},
           method: "POST",
-          body: JSON.stringify(files)
+          body: formData
         }).then((response)=>response.json()).then((json: ResponseJSON)=>{
           alert(JSON.stringify(json));
         }).catch((e)=>console.error("Response error:" + e))
-    else
+      }
+        else
       alert("Please add files.");
   }
   const fileChange = (event:ChangeEvent<HTMLInputElement>)=>
   {
-    const _files = event.target.files;
-    setFiles(_files);
+    console.log("file change");
+    const fileList = event.target.files;
+    if (fileList)
+      setFiles(fileList);
+    else
+    {
+      alert("Can't add files.");
+      console.error("fileList is null");
+    }
   }
   return (
     <div>
