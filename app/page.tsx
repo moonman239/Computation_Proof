@@ -15,7 +15,6 @@ export default function Home() {
       for (let i=0; i<files.length; i++)
         formData.append("files_" + i,files[i]);
        fetch("circom",{
-          headers: {"Content-Type":"application/json"},
           method: "POST",
           body: formData
         }).then((response)=>response.json()).then((json: ResponseJSON)=>{
