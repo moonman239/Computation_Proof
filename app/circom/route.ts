@@ -16,16 +16,12 @@ export async function POST(req: Request)
     {
         const uuid = uuidv4();
         const inputFilePath = uuid + ".circom";
-        const outputFilePath = uuid + ".json";
         const blob = (row.value as Blob);
         const value = await blob.text();
         fs.writeFileSync(inputFilePath,value,{
         flag:"w"
         });
-        fs.writeFileSync(outputFilePath,"",{
-        flag:"w"
-        });
-        const buffer = spawnSync("circom",[inputFilePath,"-o",outputFilePath],{
+        const buffer = spawnSync("circom",[inputFilePath],{
             stdio:["inherit","pipe","pipe"]
         });
 
@@ -51,5 +47,7 @@ export async function POST(req: Request)
         }
         row = values.next();
     }
-    return NextResponse.json({compiledCircuits:compiledCircuits, errors:errors});
+    return NextResponse.json({compiledCircuits:compiledCircuits, errors:errors},{
+        status:errors ? 400: 200
+    });
 }
