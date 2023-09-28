@@ -14,7 +14,6 @@ export async function POST(req: Request): Promise<NextResponse<types.SuccessResp
     let row = values.next();
     const errors = new Array<{blob: Blob,error: string}>();
     const sessionId = uuidv4();
-    spawnSync("mkdir",[sessionId],{cwd:"circom_user_files"});
     const workingDirectory = "circom_user_files/" + sessionId; // where all the stuff inputted by user and generated from user input will go
     // create directory
     fs.mkdirSync(workingDirectory);
@@ -23,13 +22,13 @@ export async function POST(req: Request): Promise<NextResponse<types.SuccessResp
     {
         numValues += 1;
         const fileId = uuidv4();
-        const inputFilePath = workingDirectory + "/" + fileId + ".circom";
+        const inputFileName = fileId + ".circom";
         const blob = (row.value as Blob);
         const value = await blob.text();
-        fs.writeFileSync(inputFilePath,value,{
+        fs.writeFileSync(workingDirectory + "/" + inputFileName,value,{
         flag:"w"
         });
-        const buffer = spawnSync("circom",[inputFilePath,"--wasm"],{
+        const buffer = spawnSync("circom",[inputFileName,"--wasm"],{
             stdio:["inherit","pipe","pipe"],
             cwd: workingDirectory
         },);
