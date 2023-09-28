@@ -1,7 +1,7 @@
 "use client";  // since state is used, we can't use a server-based component
 import Image from 'next/image'
 import { ChangeEvent, FormEvent, useState } from 'react';
-import {ResponseJSON } from "./circom/types";
+import {ResponseJSON } from "./circom/compile_circuit/types";
 import { ConfirmCustomerBalancePaymentData } from '@stripe/stripe-js';
 
 export default function Home() {
@@ -14,7 +14,7 @@ export default function Home() {
       const formData = new FormData();
       for (let i=0; i<files.length; i++)
         formData.append("files_" + i,files[i]);
-       fetch("circom",{
+       fetch("circom/compile_circuit",{
           method: "POST",
           body: formData
         }).then((response)=>response.json()).then((json: ResponseJSON)=>{
