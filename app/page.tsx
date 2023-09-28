@@ -4,7 +4,7 @@ import { ChangeEvent, FormEvent, useState } from 'react';
 import {ErrorResponseJSON,SuccessResponseJSON } from "./circom/compile_circuit/types";
 import { ConfirmCustomerBalancePaymentData } from '@stripe/stripe-js';
 
-async function compileCircuit(files: FileList)
+async function compileCircuit(files: FileList): Promise<SuccessResponseJSON>
 {
   const filesFormData = new FormData();
   for (let i=0; i<files.length; i++)
@@ -13,19 +13,20 @@ async function compileCircuit(files: FileList)
           method: "POST",
           body: filesFormData
         });
+  const crJson: SuccessResponseJSON | ErrorResponseJSON = await compilationResponse.json();
   if (compilationResponse.ok)
   {
-    const crJson = await compilationResponse.json();
-    return crJson;
+    return (crJson as SuccessResponseJSON);
   }
   else
   {
-    throw new Error(compilationResponse.statusText);
+    throw new Error((crJson as ErrorResponseJSON).error);
   }  
 }
 async function generateWitnesses(sessionId: string)
 {
   const sessionFormData = new FormData();
+  console.log("generating witness for id " + sessionId);
   sessionFormData.append("session_id",sessionId);
   const generateWitnessesResponse = await fetch("circom/generateWitnesses",{
     method: "POST",
@@ -44,7 +45,7 @@ export default function Home() {
     if (files)
     {
           // generate witnesses for each file
-                compileCircuit(files).then(generateWitnesses).catch((e)=>console.error("Response error:" + e))
+                compileCircuit(files).then((json)=>generateWitnesses(json.sessionId)).catch((e)=>console.error("Response error:" + e))
       }
         else
       alert("Please add files.");
