@@ -1,8 +1,40 @@
 "use client";  // since state is used, we can't use a server-based component
 import Image from 'next/image'
 import { ChangeEvent, FormEvent, useState } from 'react';
-import {ResponseJSON } from "./circom/compile_circuit/types";
+import {ErrorResponseJSON,SuccessResponseJSON } from "./circom/compile_circuit/types";
 import { ConfirmCustomerBalancePaymentData } from '@stripe/stripe-js';
+
+async function compileCircuit(files: FileList)
+{
+  const filesFormData = new FormData();
+  for (let i=0; i<files.length; i++)
+    filesFormData.append("files_" + i,files[i]);
+  const compilationResponse = await fetch("circom/compile_circuit",{
+          method: "POST",
+          body: filesFormData
+        });
+  if (compilationResponse.ok)
+  {
+    const crJson = await compilationResponse.json();
+    return crJson;
+  }
+  else
+  {
+    throw new Error(compilationResponse.statusText);
+  }  
+}
+async function generateWitnesses(sessionId: string)
+{
+  const sessionFormData = new FormData();
+  sessionFormData.append("session_id",sessionId);
+  const generateWitnessesResponse = await fetch("circom/generateWitnesses",{
+    method: "POST",
+    body: sessionFormData
+  });
+  const generateWitnessesResponseJson = await generateWitnessesResponse.json();
+  return generateWitnessesResponseJson;
+}
+
 
 export default function Home() {
   const [files,setFiles] = useState<FileList>();
@@ -11,15 +43,8 @@ export default function Home() {
     
     if (files)
     {
-      const formData = new FormData();
-      for (let i=0; i<files.length; i++)
-        formData.append("files_" + i,files[i]);
-       fetch("circom/compile_circuit",{
-          method: "POST",
-          body: formData
-        }).then((response)=>response.json()).then((json: ResponseJSON)=>{
-          alert(JSON.stringify(json));
-        }).catch((e)=>console.error("Response error:" + e))
+          // generate witnesses for each file
+                compileCircuit(files).then(generateWitnesses).catch((e)=>console.error("Response error:" + e))
       }
         else
       alert("Please add files.");
