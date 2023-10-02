@@ -9,6 +9,7 @@ async function compileCircuit(files: FileList): Promise<SuccessResponseJSON>
   const filesFormData = new FormData();
   for (let i=0; i<files.length; i++)
     filesFormData.append("files_" + i,files[i]);
+  const sessionIdResponse = await fetch("createSession",{method:"POST"});
   const compilationResponse = await fetch("circom/compile_circuit",{
           method: "POST",
           body: filesFormData

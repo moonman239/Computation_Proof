@@ -1,22 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import * as types from "./types";
 const { v4: uuidv4 } = require('uuid');
 import {spawnSync} from "child_process";
 import * as fs from "fs";
 import { NetConnectOpts } from 'net';
 import { AppContext } from 'next/app';
+import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 
-export async function POST(req: Request): Promise<NextResponse<types.SuccessResponseJSON | types.ErrorResponseJSON>>
+export async function POST(req: NextRequest): Promise<NextResponse<types.SuccessResponseJSON | types.ErrorResponseJSON>>
 {
     const formData = await req.formData();
-    req.body
     const values = formData.values();
     let row = values.next();
     const errors = new Array<{blob: Blob,error: string}>();
-    const sessionId = uuidv4();
+    const sessionIdCookie = req.cookies.get("session_id");
+    if (!sessionIdCookie)
+        return NextResponse.json({error: "NO_SESSION_ID"},{status:400});
+    const sessionId = (sessionIdCookie as RequestCookie).value;
     const workingDirectory = "circom_user_files/" + sessionId; // where all the stuff inputted by user and generated from user input will go
-    // create directory
-    fs.mkdirSync(workingDirectory);
     let numValues = 0;
     while (!row.done)
     {
