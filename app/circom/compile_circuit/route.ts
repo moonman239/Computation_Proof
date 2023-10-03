@@ -17,7 +17,7 @@ function compileCircuit(circuitFilePath:string,workingDirectory:string | undefin
             throw new Error(buffer.error.message);
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse<types.SuccessResponseJSON | types.ErrorResponseJSON>>
+export async function POST(req: NextRequest)
 {
     const formData = await req.formData();
     const circuit = formData.get("circuit");
@@ -38,5 +38,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<types.Success
             console.error(e);
             return new NextResponse("error",{status:500});
         }
+    }
+    else
+    {
+        return new NextResponse("no_valid_id",{status:400});
     }
 }
