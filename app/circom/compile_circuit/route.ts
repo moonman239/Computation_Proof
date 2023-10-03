@@ -7,54 +7,36 @@ import { NetConnectOpts } from 'net';
 import { AppContext } from 'next/app';
 import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 
+function compileCircuit(circuitFilePath:string,workingDirectory:string | undefined = undefined)
+{
+        const buffer = spawnSync("circom",[,"--wasm"],{
+            stdio:["inherit","pipe","pipe"],
+            cwd: workingDirectory
+        });
+        if (buffer.error)
+            throw new Error(buffer.error.message);
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse<types.SuccessResponseJSON | types.ErrorResponseJSON>>
 {
     const formData = await req.formData();
-    const values = formData.values();
-    let row = values.next();
-    const errors = new Array<{blob: Blob,error: string}>();
+    const circuit = formData.get("circuit");
     const sessionIdCookie = req.cookies.get("session_id");
     if (!sessionIdCookie)
         return NextResponse.json({error: "NO_SESSION_ID"},{status:400});
     const sessionId = (sessionIdCookie as RequestCookie).value;
-    const workingDirectory = "circom_user_files/" + sessionId; // where all the stuff inputted by user and generated from user input will go
-    let numValues = 0;
-    while (!row.done)
+    const circuitFilePath = "circom_user_files/${sessionId}"
+    if (circuit)
     {
-        numValues += 1;
-        const fileId = uuidv4();
-        const inputFileName = fileId + ".circom";
-        const blob = (row.value as Blob);
-        const value = await blob.text();
-        fs.writeFileSync(workingDirectory + "/" + inputFileName,value,{
-        flag:"w"
-        });
-        const buffer = spawnSync("circom",[inputFileName,"--wasm"],{
-            stdio:["inherit","pipe","pipe"],
-            cwd: workingDirectory
-        },);
-
-        if (buffer.error)
+        try
         {
-            console.error("circom buffer error for file '" + inputFilePath + ": " + buffer.error);
-            errors.push({blob: blob,error:buffer.error.message});
+            compileCircuit(circuitFilePath);
+            return new NextResponse("success",{status:200});
         }
-        else
+        catch(e)
         {
-            console.log("circom logs: " + buffer.output);
+            console.error(e);
+            return new NextResponse("error",{status:500});
         }
-        row = values.next();
-    }
-    if (errors.length >= numValues)
-        return NextResponse.json({error: errors.toString},{
-    status:400
-        });
-    else
-    {
-        const obj = {sessionId: sessionId};
-        if (errors.length == 0)
-            return NextResponse.json(obj);
-        else
-            return NextResponse.json(obj,{status:206});
     }
 }

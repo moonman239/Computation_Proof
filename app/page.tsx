@@ -4,37 +4,17 @@ import { ChangeEvent, FormEvent, useState } from 'react';
 import {ErrorResponseJSON,SuccessResponseJSON } from "./circom/compile_circuit/types";
 import { ConfirmCustomerBalancePaymentData } from '@stripe/stripe-js';
 
-async function compileCircuit(files: FileList): Promise<SuccessResponseJSON>
+async function compileCircuit(circuitFile: File)
 {
-  const filesFormData = new FormData();
-  for (let i=0; i<files.length; i++)
-    filesFormData.append("files_" + i,files[i]);
+  const circuitFileFormData = new FormData();
+  circuitFileFormData.append("circuit",circuitFile);
   const sessionIdResponse = await fetch("createSession",{method:"POST"});
   const compilationResponse = await fetch("circom/compile_circuit",{
           method: "POST",
-          body: filesFormData
+          body: circuitFileFormData
         });
-  const crJson: SuccessResponseJSON | ErrorResponseJSON = await compilationResponse.json();
-  if (compilationResponse.ok)
-  {
-    return (crJson as SuccessResponseJSON);
-  }
-  else
-  {
-    throw new Error((crJson as ErrorResponseJSON).error);
-  }  
-}
-async function generateWitnesses(sessionId: string)
-{
-  const sessionFormData = new FormData();
-  console.log("generating witness for id " + sessionId);
-  sessionFormData.append("session_id",sessionId);
-  const generateWitnessesResponse = await fetch("circom/generateWitnesses",{
-    method: "POST",
-    body: sessionFormData
-  });
-  const generateWitnessesResponseJson = await generateWitnessesResponse.json();
-  return generateWitnessesResponseJson;
+  const responseText = await compilationResponse.text();
+  return responseText;
 }
 
 
@@ -46,9 +26,9 @@ export default function Home() {
     if (files)
     {
           // generate witnesses for each file
-                compileCircuit(files).then((json)=>generateWitnesses(json.sessionId)).catch((e)=>console.error("Response error:" + e))
-      }
-        else
+                compileCircuit(files[0]).then((t)=>console.log(t)).catch((e)=>console.error("Response error:" + e))
+    }
+    else
       alert("Please add files.");
   }
   const fileChange = (event:ChangeEvent<HTMLInputElement>)=>
