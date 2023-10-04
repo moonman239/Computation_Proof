@@ -15,6 +15,8 @@ function compileCircuit(circuitFilePath:string,workingDirectory:string | undefin
         });
         if (buffer.error)
             throw new Error(buffer.error.message);
+        else
+            return buffer.output.toString();
 }
 
 export async function POST(req: NextRequest)
@@ -30,7 +32,9 @@ export async function POST(req: NextRequest)
     {
         try
         {
-            compileCircuit(circuitFilePath);
+            const c = compileCircuit(circuitFilePath);
+            if (c)
+                console.warn(c); // this could be an error
             return new NextResponse("success",{status:200});
         }
         catch(e)
