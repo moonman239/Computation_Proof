@@ -45,13 +45,14 @@ export async function POST(req: NextRequest)
     }
     // get user input from file
     // generate witness from user input
-    const generateWitnessProcess = spawnSync("node",["generate_witness.js",sessionId + ".wasm","input.json","witness.wtns"],{cwd: userFiles, stdio: ["inherit","pipe","pipe"]});
-    console.log(generateWitnessProcess.stdout.toString());
-    if (generateWitnessProcess.stderr)
+    const {stderr, stdout, status}= spawnSync("node",["generate_witness.js",sessionId + ".wasm","input.json","witness.wtns"],{cwd: userFiles});
+    console.log("generate_witness output: " + stdout.toString("utf-8"));
+    if (status !== 0)
     {
-        console.error(generateWitnessProcess.stderr.toString());
+        console.error("generateWitnessProcess error: " + generateWitnessProcess.stderr.toString("utf8"));
         return new NextResponse("error",{status:500});
     }
+    console.log("successfully generated witness");
     // check for errors
-    return NextResponse.json({});
+    return new NextResponse("success");
 }
