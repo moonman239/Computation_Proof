@@ -13,19 +13,26 @@ async function compileCircuit(circuitFile: File)
           method: "POST",
           body: circuitFormData
         });
-  const responseText = await compilationResponse.text();
-  return responseText;
+  if (!compilationResponse.ok)
+  {
+    const responseText = await compilationResponse.text();
+    throw new Error(responseText);
+  }
 }
 
 
 export default function Home() {
   const [files,setFiles] = useState<FileList>();
+  const [success,setSuccess] = useState(false);
   const onSubmit = (e:FormEvent)=>{
     e.preventDefault();
     
     if (files)
     {
-        compileCircuit(files[0]).then((t)=>console.log(t)).catch((e)=>console.error("Response error:" + e))
+        compileCircuit(files[0]).then(()=>setSuccess(true)).catch((e)=>{
+          console.error("Response error:" + e);
+          setSuccess(false);
+      })
     }
     else
       alert("Please add files.");
@@ -44,13 +51,13 @@ export default function Home() {
   }
   return (
     <div>
-      <h3>Circuit Prover</h3>
-      Select a circum file, then click Upload to prove it.
+      <h3>Circom</h3>
+      Select a circom file, then click Compile.
       <form onSubmit={onSubmit}>
       <input type="file" accept=".circom" onChange={fileChange}></input>
-      <button type="submit">Upload</button>
+      <button type="submit">Compile</button>
       </form>
-      <div></div>
+      {success ? <a href="/witnessGeneration">Generate Witness</a> : ""}
     </div>
   )
 }
