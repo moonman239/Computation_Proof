@@ -1,6 +1,11 @@
 "use client";
 
 import { useState } from "react";
+/**
+ * calls the witness generation endpoint
+ * @param input The input to the circuit
+ * @throws Errors when the client does not receive an "OK" from the server.
+ */
 async function generateWitness(input: string)
 {
     const formData = new FormData();
@@ -8,10 +13,16 @@ async function generateWitness(input: string)
     const response = await fetch("/circom/generateWitnesses",{
         body:formData,
         method: "POST"
-    })
-    return response.ok;  
-}
+    });
+    if (!response.ok)
+        throw new Error(await response.text());
 
+}
+/**
+ * Gets the value of a cookie.
+ * @param name The cookie name.
+ * @returns The value of the cookie.
+ */
 function getCookieValue(name: string) { let cookies = document.cookie.split("; "); let startingString = name + "="; let cookie = cookies.filter((value)=>value.startsWith(startingString))[0]; return cookie.replace(startingString,""); };
 /**
  * React component for generating witnesses.
@@ -24,7 +35,16 @@ export default function WitnessGeneration() {
             e.preventDefault();
             if (input)
             {
-                setSuccess(await generateWitness(input));
+                try
+                {
+                    await generateWitness(input);
+                    setSuccess(true);
+                }
+                catch (e)
+                {
+                    console.error(e);
+                    setSuccess(false);
+                }
             }
             else
                 alert("please add some input.");
