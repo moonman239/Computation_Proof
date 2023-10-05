@@ -1,33 +1,57 @@
 import * as fs from "fs";
+import path from "path";
+import { writeFile } from "fs/promises";
 import { spawnSync } from "child_process";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import { buffer } from "stream/consumers";
 export async function POST(req: NextRequest)
 {
-    // generate witness
     const sessionId = req.cookies.get("session_id")?.value;
     if (!sessionId)
         return NextResponse.json({error: "NO_SESSION_ID"},{status:400});
     console.log(sessionId);
-    const sessionDirectory = "circom_user_files/" + sessionId;
+    const uploadDir = path.join(process.cwd(),`circom_user_files`);
+    const userFiles = path.join(uploadDir,`${sessionId}_js`);
+    // save input to input.json
+    const formData = await req.formData();
+    
+    const circuitInput = formData.get("circuit_input") as (string | null);
+    if (circuitInput)
+    {
+        try
+        {
+            JSON.parse(circuitInput)
+        }
+        catch (e)
+        {
+            // invalid input
+            return new NextResponse("INVALID_JSON",{status:400});
+        }
+        await writeFile(path.join(userFiles,"input.json"),circuitInput);
+    }
+    else
+    {
+        console.error(`no input provided for session id '${sessionId}'`);
+        return new NextResponse("NO_INPUT",{status:400});
+    }
     try
     {
-        fs.readFileSync("${sessionDirectory}/generate_witness.js");
+        fs.readFileSync(path.join(userFiles,"generate_witness.js"));
     }
     catch (e)
     {
         console.error(e);
         return new NextResponse("NO_VALID_CIRCUIT",{status:400});
     }
-    try
+    // get user input from file
+    // generate witness from user input
+    const generateWitnessProcess = spawnSync("node",["generate_witness.js",sessionId + ".wasm","input.json","witness.wtns"],{cwd: userFiles, stdio: ["inherit","pipe","pipe"]});
+    console.log(generateWitnessProcess.stdout.toString());
+    if (generateWitnessProcess.stderr)
     {
-        const generateWitnessProcess = spawnSync("node",["generate_witness.js",sessionId + ".wasm","input.json","witness.wtns"],{cwd: sessionDirectory});
-        // check for witness file existence
-        fs.readFileSync(sessionDirectory + "/witness.wtns");
+        console.error(generateWitnessProcess.stderr.toString());
+        return new NextResponse("error",{status:500});
     }
-    catch (e)
-    {
-        console.error("Error trying to process '" + sessionId + "': " + e);
-        return new NextResponse("error");
-    }
+    // check for errors
     return NextResponse.json({});
 }

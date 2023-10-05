@@ -7,6 +7,6 @@ export function POST()
     const sessionId = uuidv4();
     response.cookies.set("session_id",sessionId);
     // create directory
-    mkdirSync("circom_user_files/" + sessionId);
+    // mkdirSync("circom_user_files/" + sessionId);
     return response;
 }

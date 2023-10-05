@@ -6,12 +6,12 @@ import { ConfirmCustomerBalancePaymentData } from '@stripe/stripe-js';
 
 async function compileCircuit(circuitFile: File)
 {
-  const circuitFileFormData = new FormData();
-  circuitFileFormData.append("circuit",circuitFile);
+  const circuitFormData = new FormData();
+  circuitFormData.append("circuit",circuitFile);
   const sessionIdResponse = await fetch("createSession",{method:"POST"});
   const compilationResponse = await fetch("circom/compile_circuit",{
           method: "POST",
-          body: circuitFileFormData
+          body: circuitFormData
         });
   const responseText = await compilationResponse.text();
   return responseText;
@@ -25,8 +25,7 @@ export default function Home() {
     
     if (files)
     {
-          // generate witnesses for each file
-                compileCircuit(files[0]).then((t)=>console.log(t)).catch((e)=>console.error("Response error:" + e))
+        compileCircuit(files[0]).then((t)=>console.log(t)).catch((e)=>console.error("Response error:" + e))
     }
     else
       alert("Please add files.");
