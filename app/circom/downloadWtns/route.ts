@@ -2,7 +2,7 @@ import { NextRequest, NextResponse} from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
 /**
- * 
+ * Allows the user to download the WTNS file they generated to their local filesystem.
  * @param request A POST request with a cookie named "session_id."
  * @returns If successful, the user's .wtns file. If unsuccessful, an error response.
  */

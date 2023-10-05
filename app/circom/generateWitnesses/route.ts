@@ -1,9 +1,12 @@
 import * as fs from "fs";
 import path from "path";
-import { writeFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import { spawnSync } from "child_process";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { buffer } from "stream/consumers";
+/**
+ * Generates a WTNS file for use with snarkjs.
+ */
 export async function POST(req: NextRequest)
 {
     const sessionId = req.cookies.get("session_id")?.value;
@@ -47,12 +50,13 @@ export async function POST(req: NextRequest)
     // generate witness from user input
     const {stderr, stdout, status}= spawnSync("node",["generate_witness.js",sessionId + ".wasm","input.json","witness.wtns"],{cwd: userFiles});
     console.log("generate_witness output: " + stdout.toString("utf-8"));
+    // check for errors
     if (status !== 0)
     {
-        console.error("generateWitnessProcess error: " + generateWitnessProcess.stderr.toString("utf8"));
+        console.error("generateWitnessProcess error: " + stderr.toString("utf8"));
         return new NextResponse("error",{status:500});
     }
     console.log("successfully generated witness");
-    // check for errors
-    return new NextResponse("success");
+    
+    return new NextResponse("success",{status:200});
 }
