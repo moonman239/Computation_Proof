@@ -55,7 +55,7 @@ export async function POST(req: NextRequest)
         catch(e)
         {
             console.error(`error while compiling circuit at ${circuitFileDirectory}/${circuitFileName}: ${e}`);
-            return new NextResponse("error",{status:500});
+            return new NextResponse(e,{status:400});
         }
     }
     else
