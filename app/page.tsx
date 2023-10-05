@@ -30,6 +30,7 @@ export default function Home() {
     if (files)
     {
         compileCircuit(files[0]).then(()=>setSuccess(true)).catch((e)=>{
+          alert("Could not compile file. Please check your program and try again later.");
           console.error("Response error:" + e);
           setSuccess(false);
       })
