@@ -15,14 +15,13 @@ import copyFile from '../fileIO';
  */
 function compileCircuit(circuitFileName:string,circuitFileDirectory:string)
 {
-        const buffer = spawnSync("circom",[circuitFileName,"--wasm"],{
-            stdio:["inherit","pipe","pipe"],
+        const {stderr,stdout,status} = spawnSync("circom",[circuitFileName,"--wasm"],{
             cwd: circuitFileDirectory
         });
-        if (buffer.error)
-            throw new Error(buffer.error.message);
+        if (status !== 0)
+            throw new Error(stderr.toString("utf8"));
         else
-            return buffer.output.toString();
+            return stdout.toString("utf8");
 }
 
 
