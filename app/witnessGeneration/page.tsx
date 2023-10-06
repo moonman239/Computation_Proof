@@ -49,8 +49,8 @@ export default function WitnessGeneration() {
             else
                 alert("please add some input.");
         }}>
-        Enter your input in JSON format, then click "Generate Witness" to generate a witness file.
-        If successful, a "Download WTNS" link will appear.
+        Enter your input in JSON format, then click &lsquo;Generate Witness&lsquo; to generate a witness file.
+        If successful, a &lsquo;Download WTNS&lsquo; link will appear.
         Input: <input type="text" onChange={(e)=>setInput(e.target.value)} />
         <button type="submit">Generate Witness</button>
         </form>
